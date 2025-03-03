@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    restart: on-failure
+    container_name: ${RABBITMQ_HOST}
+    env_file: .env
+    build:
+      context: docker/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+
+  iot_app:
+    restart: on-failure
+    container_name: ${APP_HOST}
+    env_file: .env
+    build:
+      context: .
+    ports:
+      - '8080:8080'
+    links:
+      - rabbitmq
+
+  mariadb:
+    restart: on-failure
+    container_name: ${DB_HOST}
+    env_file: .env
+    image: mariadb:10.7.8
+    ports:
+      - '3307:3306'
+    links:
+      - iot_app
+    environment:
+      MYSQL_USER: iot_app
+      MYSQL_PASSWORD: iot_password&Studi
+      MYSQL_DATABASE: iot_bdd
